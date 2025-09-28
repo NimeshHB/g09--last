@@ -1,66 +1,70 @@
-import { NextRequest, NextResponse } from "next/server";
-import dbConnect from '../../../lib/dbConnect';
-import User from '../../../models/User';
-import { Types } from 'mongoose';
-import bcrypt from 'bcryptjs';
+const express = require('express');
+const router = express.Router();
+const bcrypt = require('bcryptjs');
+const { Types } = require('mongoose');
+const dbConnect = require('../../lib/dbConnect'); // Adjust path as needed
+const User = require('../../models/User'); // Adjust path as needed
+
+// Middleware to parse JSON bodies
+router.use(express.json());
 
 // Create user (POST)
-export async function POST(request: NextRequest) {
-  await dbConnect();
+router.post('/', async (req, res) => {
   try {
-    const data = await request.json();
-    
+    await dbConnect();
+    const data = req.body;
+
     // Validation
     if (!data.name || !data.email || !data.password) {
-      return NextResponse.json({ 
+      return res.status(400).json({ 
         success: false, 
         error: "Name, email, and password are required" 
-      }, { status: 400 });
+      });
     }
 
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(data.email)) {
-      return NextResponse.json({ 
+      return res.status(400).json({ 
         success: false, 
         error: "Invalid email format" 
-      }, { status: 400 });
+      });
     }
 
     // Password validation
     if (data.password.length < 6) {
-      return NextResponse.json({ 
+      return res.status(400).json({ 
         success: false, 
         error: "Password must be at least 6 characters long" 
-      }, { status: 400 });
+      });
     }
 
     // Role validation
     const validRoles = ['user', 'admin', 'attendant'];
     if (!validRoles.includes(data.role)) {
-      return NextResponse.json({ 
+      return res.status(400).json({ 
         success: false, 
         error: "Invalid role specified" 
-      }, { status: 400 });
+      });
     }
 
     // Vehicle validation for users
     if (data.role === 'user') {
       if (!data.vehicleNumber || !data.vehicleType) {
-        return NextResponse.json({ 
+        return res.status(400).json({ 
           success: false, 
           error: "Vehicle number and type are required for users" 
-        }, { status: 400 });
+        });
       }
     }
 
     // Check if email already exists
     const existingUser = await User.findOne({ email: data.email });
     if (existingUser) {
-      return NextResponse.json({ 
+      return res.status(400).json({ 
         success: false, 
         error: "Email already exists" 
-      }, { status: 400 });
+      });
     }
 
     // Hash password
@@ -79,7 +83,6 @@ export async function POST(request: NextRequest) {
       updatedAt: new Date()
     };
 
-    // Add role-specific fields
     if (data.role === 'admin') {
       userData.adminLevel = data.adminLevel || 'manager';
       userData.permissions = Array.isArray(data.permissions) ? data.permissions : [];
@@ -88,9 +91,8 @@ export async function POST(request: NextRequest) {
     const user = new User(userData);
     await user.save();
     
-    // Return safe user data (without password)
     const { password, verificationToken, verificationTokenExpires, ...safeUser } = user.toObject();
-    return NextResponse.json({ 
+    return res.status(201).json({ 
       success: true, 
       user: {
         ...safeUser,
@@ -99,42 +101,32 @@ export async function POST(request: NextRequest) {
         updatedAt: safeUser.updatedAt?.toISOString(),
         lastLogin: safeUser.lastLogin?.toISOString() || null
       }
-    }, { status: 201 });
-  } catch (error: any) {
+    });
+  } catch (error) {
     console.error('Create user error:', error);
     if (error.code === 11000) {
-      return NextResponse.json({ 
+      return res.status(400).json({ 
         success: false, 
         error: "Email already exists" 
-      }, { status: 400 });
+      });
     }
-    return NextResponse.json({ 
+    return res.status(500).json({ 
       success: false, 
-      error: (error as Error).message 
-    }, { status: 500 });
+      error: error.message 
+    });
   }
-}
+});
 
 // Get users (GET)
-export async function GET(request: NextRequest) {
-  await dbConnect();
+router.get('/', async (req, res) => {
   try {
-    const { searchParams } = new URL(request.url);
-    const includeStats = searchParams.get("includeStats") === "true";
-    const role = searchParams.get("role");
-    const status = searchParams.get("status");
-    const search = searchParams.get("search");
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "50");
-    const sortBy = searchParams.get("sortBy") || "createdAt";
-    const sortOrder = searchParams.get("sortOrder") || "desc";
+    await dbConnect();
+    const { includeStats, role, status, search, page = '1', limit = '50', sortBy = 'createdAt', sortOrder = 'desc' } = req.query;
     
-    // Build filter
-    const filter: any = {};
+    const filter = {};
     if (role) filter.role = role;
     if (status) filter.status = status;
     
-    // Add search functionality
     if (search) {
       filter.$or = [
         { name: { $regex: search, $options: 'i' } },
@@ -144,26 +136,19 @@ export async function GET(request: NextRequest) {
       ];
     }
     
-    // Calculate pagination
-    const skip = (page - 1) * limit;
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const sort = { [sortBy]: sortOrder === 'desc' ? -1 : 1 };
     
-    // Build sort object
-    const sort: any = {};
-    sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
-    
-    // Get users with pagination
     const users = await User.find(filter)
       .select('-password -verificationToken -verificationTokenExpires')
       .sort(sort)
       .skip(skip)
-      .limit(limit);
+      .limit(parseInt(limit));
     
-    // Get total count for pagination
     const totalCount = await User.countDocuments(filter);
-    const totalPages = Math.ceil(totalCount / limit);
+    const totalPages = Math.ceil(totalCount / parseInt(limit));
     
-    // Format response
-    const safeUsers = users.map((user) => ({
+    const safeUsers = users.map(user => ({
       ...user.toObject(),
       _id: user._id.toString(),
       createdAt: user.createdAt?.toISOString(),
@@ -171,9 +156,8 @@ export async function GET(request: NextRequest) {
       lastLogin: user.lastLogin?.toISOString() || null
     }));
     
-    // Calculate stats if requested
     let stats = null;
-    if (includeStats) {
+    if (includeStats === 'true') {
       const now = new Date();
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
       const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -213,155 +197,138 @@ export async function GET(request: NextRequest) {
       };
     }
     
-    return NextResponse.json({ 
+    return res.status(200).json({ 
       success: true, 
       users: safeUsers,
       pagination: {
-        page,
-        limit,
+        page: parseInt(page),
+        limit: parseInt(limit),
         totalCount,
         totalPages,
-        hasNext: page < totalPages,
-        hasPrev: page > 1
+        hasNext: parseInt(page) < totalPages,
+        hasPrev: parseInt(page) > 1
       },
       ...(stats && { stats })
     });
   } catch (error) {
     console.error("Get users error:", error);
-    return NextResponse.json({ success: false, error: "Failed to fetch users" }, { status: 500 });
+    return res.status(500).json({ success: false, error: "Failed to fetch users" });
   }
-}
+});
 
 // Update user (PATCH)
-export async function PATCH(request: NextRequest) {
-  await dbConnect();
+router.patch('/:id', async (req, res) => {
   try {
-    const data = await request.json();
-    const { _id, password, ...updateFields } = data;
+    await dbConnect();
+    const { id } = req.params;
+    const { password, ...updateFields } = req.body;
     
-    if (!_id) {
-      return NextResponse.json({ 
-        success: false, 
-        error: "Missing user _id" 
-      }, { status: 400 });
-    }
-
-    // Validate ObjectId format
-    if (!Types.ObjectId.isValid(_id)) {
-      return NextResponse.json({ 
+    if (!Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ 
         success: false, 
         error: "Invalid user ID format" 
-      }, { status: 400 });
+      });
     }
 
-    // Get current user to check role
-    const currentUser = await User.findById(_id);
+    const currentUser = await User.findById(id);
     if (!currentUser) {
-      return NextResponse.json({ 
+      return res.status(404).json({ 
         success: false, 
         error: "User not found" 
-      }, { status: 404 });
+      });
     }
 
-    // Email validation if email is being updated
     if (updateFields.email) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(updateFields.email)) {
-        return NextResponse.json({ 
+        return res.status(400).json({ 
           success: false, 
           error: "Invalid email format" 
-        }, { status: 400 });
+        });
       }
 
-      // Check if email already exists (excluding current user)
       const existingUser = await User.findOne({ 
         email: updateFields.email, 
-        _id: { $ne: new Types.ObjectId(_id) } 
+        _id: { $ne: new Types.ObjectId(id) } 
       });
       if (existingUser) {
-        return NextResponse.json({ 
+        return res.status(400).json({ 
           success: false, 
           error: "Email already exists" 
-        }, { status: 400 });
+        });
       }
     }
 
-    // Role validation if role is being updated
     if (updateFields.role) {
       const validRoles = ['user', 'admin', 'attendant'];
       if (!validRoles.includes(updateFields.role)) {
-        return NextResponse.json({ 
+        return res.status(400).json({ 
           success: false, 
           error: "Invalid role specified" 
-        }, { status: 400 });
+        });
       }
     }
 
-    // Vehicle validation for users
     if ((updateFields.role === 'user' || currentUser.role === 'user') && updateFields.role !== 'admin' && updateFields.role !== 'attendant') {
       if (updateFields.vehicleNumber === '' || updateFields.vehicleType === '') {
-        return NextResponse.json({ 
+        return res.status(400).json({ 
           success: false, 
           error: "Vehicle number and type are required for users" 
-        }, { status: 400 });
+        });
       }
     }
 
-    // Handle password update if provided
     if (password && password.trim()) {
       if (password.length < 6) {
-        return NextResponse.json({ 
+        return res.status(400).json({ 
           success: false, 
           error: "Password must be at least 6 characters long" 
-        }, { status: 400 });
+        });
       }
       const saltRounds = 12;
       updateFields.password = await bcrypt.hash(password, saltRounds);
     }
 
-    // Validate permissions if provided (for admins)
     if (updateFields.permissions && !Array.isArray(updateFields.permissions)) {
-      return NextResponse.json({ 
+      return res.status(400).json({ 
         success: false, 
         error: "Permissions must be an array" 
-      }, { status: 400 });
+      });
     }
 
-    // Prevent deletion of super admin if it's the last one and status is being changed to inactive
     if (currentUser.role === 'admin' && currentUser.adminLevel === 'super' && updateFields.status === 'inactive') {
       const superAdminCount = await User.countDocuments({ 
         role: 'admin', 
         adminLevel: 'super', 
         status: 'active',
-        _id: { $ne: new Types.ObjectId(_id) }
+        _id: { $ne: new Types.ObjectId(id) }
       });
       
       if (superAdminCount === 0) {
-        return NextResponse.json({ 
+        return res.status(400).json({ 
           success: false, 
           error: "Cannot deactivate the last active super admin" 
-        }, { status: 400 });
+        });
       }
     }
 
     updateFields.updatedAt = new Date();
     
     const result = await User.updateOne(
-      { _id: new Types.ObjectId(_id) },
+      { _id: new Types.ObjectId(id) },
       { $set: updateFields }
     );
     
     if (result.matchedCount === 0) {
-      return NextResponse.json({ 
+      return res.status(404).json({ 
         success: false, 
         error: "User not found" 
-      }, { status: 404 });
+      });
     }
 
-    // Get updated user data (without password)
-    const updatedUser = await User.findById(_id).select('-password -verificationToken -verificationTokenExpires');
+    const updatedUser = await User.findById(id).select('-password -verificationToken -verificationTokenExpires');
     
-    return NextResponse.json({ 
+    return res.status(200).json({ 
       success: true, 
       modifiedCount: result.modifiedCount,
       user: {
@@ -371,47 +338,44 @@ export async function PATCH(request: NextRequest) {
         updatedAt: updatedUser?.updatedAt?.toISOString(),
         lastLogin: updatedUser?.lastLogin?.toISOString() || null
       }
-    }, { status: 200 });
-  } catch (error: any) {
+    });
+  } catch (error) {
     console.error('Update user error:', error);
     if (error.code === 11000) {
-      return NextResponse.json({ 
+      return res.status(400).json({ 
         success: false, 
         error: "Email already exists" 
-      }, { status: 400 });
+      });
     }
-    return NextResponse.json({ 
+    return res.status(500).json({ 
       success: false, 
-      error: (error as Error).message 
-    }, { status: 500 });
+      error: error.message 
+    });
   }
-}
+});
+
 // Delete user (DELETE)
-export async function DELETE(request: NextRequest) {
-  await dbConnect();
+router.delete('/', async (req, res) => {
   try {
-    const data = await request.json();
-    const { userIds, _id } = data;
+    await dbConnect();
+    const { userIds, _id } = req.body;
     
-    // Handle single user deletion
     if (_id) {
       if (!Types.ObjectId.isValid(_id)) {
-        return NextResponse.json({ 
+        return res.status(400).json({ 
           success: false, 
           error: "Invalid user ID format" 
-        }, { status: 400 });
+        });
       }
 
-      // Check if user exists
       const userToDelete = await User.findById(_id);
       if (!userToDelete) {
-        return NextResponse.json({ 
+        return res.status(404).json({ 
           success: false, 
           error: "User not found" 
-        }, { status: 404 });
+        });
       }
 
-      // Prevent deletion of super admin if it's the last one
       if (userToDelete.role === 'admin' && userToDelete.adminLevel === 'super') {
         const superAdminCount = await User.countDocuments({ 
           role: 'admin', 
@@ -421,34 +385,31 @@ export async function DELETE(request: NextRequest) {
         });
         
         if (superAdminCount === 0) {
-          return NextResponse.json({ 
+          return res.status(400).json({ 
             success: false, 
             error: "Cannot delete the last active super admin" 
-          }, { status: 400 });
+          });
         }
       }
 
       const result = await User.deleteOne({ _id: new Types.ObjectId(_id) });
       
-      return NextResponse.json({ 
+      return res.status(200).json({ 
         success: true, 
         deletedCount: result.deletedCount,
         message: "User deleted successfully"
-      }, { status: 200 });
+      });
     }
     
-    // Handle bulk deletion
     if (userIds && Array.isArray(userIds)) {
-      // Validate all IDs
       const invalidIds = userIds.filter(id => !Types.ObjectId.isValid(id));
       if (invalidIds.length > 0) {
-        return NextResponse.json({ 
+        return res.status(400).json({ 
           success: false, 
           error: "Invalid user ID format in bulk delete" 
-        }, { status: 400 });
+        });
       }
 
-      // Check for super admins that can't be deleted
       const superAdmins = await User.find({
         _id: { $in: userIds.map(id => new Types.ObjectId(id)) },
         role: 'admin',
@@ -464,10 +425,10 @@ export async function DELETE(request: NextRequest) {
         });
         
         if (remainingSuperAdmins === 0) {
-          return NextResponse.json({ 
+          return res.status(400).json({ 
             success: false, 
             error: "Cannot delete all super admins" 
-          }, { status: 400 });
+          });
         }
       }
 
@@ -475,68 +436,64 @@ export async function DELETE(request: NextRequest) {
         _id: { $in: userIds.map(id => new Types.ObjectId(id)) }
       });
       
-      return NextResponse.json({ 
+      return res.status(200).json({ 
         success: true, 
         deletedCount: result.deletedCount,
         message: `${result.deletedCount} users deleted successfully`
-      }, { status: 200 });
+      });
     }
     
-    return NextResponse.json({ 
+    return res.status(400).json({ 
       success: false, 
       error: "Missing user ID or user IDs" 
-    }, { status: 400 });
-  } catch (error: any) {
+    });
+  } catch (error) {
     console.error('Delete user error:', error);
-    return NextResponse.json({ 
+    return res.status(500).json({ 
       success: false, 
-      error: (error as Error).message 
-    }, { status: 500 });
+      error: error.message 
+    });
   }
-}
+});
 
 // Bulk update users (PUT)
-export async function PUT(request: NextRequest) {
-  await dbConnect();
+router.put('/', async (req, res) => {
   try {
-    const data = await request.json();
-    const { userIds, updates } = data;
+    await dbConnect();
+    const { userIds, updates } = req.body;
     
     if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
-      return NextResponse.json({ 
+      return res.status(400).json({ 
         success: false, 
         error: "Missing or invalid user IDs array" 
-      }, { status: 400 });
+      });
     }
     
     if (!updates || typeof updates !== 'object') {
-      return NextResponse.json({ 
+      return res.status(400).json({ 
         success: false, 
         error: "Missing or invalid updates object" 
-      }, { status: 400 });
+      });
     }
     
-    // Validate all user IDs
     const invalidIds = userIds.filter(id => !Types.ObjectId.isValid(id));
     if (invalidIds.length > 0) {
-      return NextResponse.json({ 
+      return res.status(400).json({ 
         success: false, 
         error: "Invalid user ID format in bulk update" 
-      }, { status: 400 });
+      });
     }
     
-    // Validate role if being updated
     if (updates.role) {
       const validRoles = ['user', 'admin', 'attendant'];
       if (!validRoles.includes(updates.role)) {
-        return NextResponse.json({ 
+        return res.status(400).json({ 
           success: false, 
           error: "Invalid role specified" 
-        }, { status: 400 });
+        });
       }
     }
     
-    // Prevent deactivating all super admins
     if (updates.status === 'inactive') {
       const affectedSuperAdmins = await User.find({
         _id: { $in: userIds.map(id => new Types.ObjectId(id)) },
@@ -554,15 +511,14 @@ export async function PUT(request: NextRequest) {
         });
         
         if (remainingActiveSuperAdmins === 0) {
-          return NextResponse.json({ 
+          return res.status(400).json({ 
             success: false, 
             error: "Cannot deactivate all super admins" 
-          }, { status: 400 });
+          });
         }
       }
     }
     
-    // Add updatedAt timestamp
     updates.updatedAt = new Date();
     
     const result = await User.updateMany(
@@ -570,17 +526,19 @@ export async function PUT(request: NextRequest) {
       { $set: updates }
     );
     
-    return NextResponse.json({ 
+    return res.status(200).json({ 
       success: true, 
       modifiedCount: result.modifiedCount,
       matchedCount: result.matchedCount,
       message: `${result.modifiedCount} users updated successfully`
-    }, { status: 200 });
-  } catch (error: any) {
+    });
+  } catch (error) {
     console.error('Bulk update users error:', error);
-    return NextResponse.json({ 
+    return res.status(500).json({ 
       success: false, 
-      error: (error as Error).message 
-    }, { status: 500 });
+      error: error.message 
+    });
   }
-}
+});
+
+module.exports = router;
