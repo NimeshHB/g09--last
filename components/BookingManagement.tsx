@@ -142,7 +142,7 @@ export default function BookingManagement() {
                 </div>
               )}
 
-              {/* Actions */}
+              {}
               <div className="flex gap-2">
                 {booking.status === 'confirmed' && (
                   <Button
