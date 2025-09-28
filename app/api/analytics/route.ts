@@ -12,22 +12,18 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const type = searchParams.get('type')
     
-    switch (type) {
-      case 'monthly':
-        return NextResponse.json({ data: await getMonthlyData() })
-      case 'weekly':
-        return NextResponse.json({ data: await getWeeklyData() })
-      case 'userTypes':
-        return NextResponse.json({ data: await getUserTypeData() })
-      case 'revenue':
-        return NextResponse.json({ data: await getRevenueData() })
-      case 'overview':
-        return NextResponse.json({ data: await getOverviewData() })
-      case 'trends':
-        return NextResponse.json({ data: await getTrendsData() })
-      default:
-        return NextResponse.json({ data: await getAllAnalytics() })
+    const handlers: Record<string, () => Promise<any>> = {
+      monthly: getMonthlyData,
+      weekly: getWeeklyData,
+      userTypes: getUserTypeData,
+      revenue: getRevenueData,
+      overview: getOverviewData,
+      trends: getTrendsData
     }
+    
+    const handler = handlers[type] || getAllAnalytics
+    return NextResponse.json({ data: await handler() })
+    
   } catch (error) {
     console.error('Analytics API error:', error)
     return NextResponse.json(
