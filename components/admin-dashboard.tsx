@@ -225,7 +225,11 @@ export function AdminDashboard({}: AdminDashboardProps) {
             <TabsTrigger value="activity" className="whitespace-nowrap">Admin Activity</TabsTrigger>
             <TabsTrigger value="bookings" className="whitespace-nowrap">Recent Bookings</TabsTrigger>
             <TabsTrigger value="users" className="whitespace-nowrap">User Management</TabsTrigger>
+<<<<<<< HEAD
             {/* <TabsTrigger value="settings" className="whitespace-nowrap">Settings</TabsTrigger> */}
+=======
+            <TabsTrigger value="settings" className="whitespace-nowrap">Settings</TabsTrigger>
+>>>>>>> bb659b6b2951bdb3629fc9f8dd9fef45591e8cf6
           </TabsList>
         </div>
 
