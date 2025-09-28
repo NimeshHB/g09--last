@@ -1,4 +1,3 @@
-
 "use client"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -19,6 +18,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Document, Packer, Paragraph, Table, TableCell, TableRow, TextRun, WidthType } from "docx"
 import { Bar, Line, Pie } from "react-chartjs-2"
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, LineElement, PointElement, ArcElement, Title, Tooltip, Legend } from "chart.js"
@@ -531,496 +531,263 @@ export function UserDashboard({ parkingSlots, currentUser, onSlotUpdate }) {
           </div>
         </div>
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className={isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Available Slots</CardTitle>
-              <MapPin className={isDarkMode ? "text-green-400" : "text-green-500"} />
-            </CardHeader>
-            <CardContent>
-              <div className={isDarkMode ? "text-green-400" : "text-green-600"}>{availableSlots}</div>
-              <p className={isDarkMode ? "text-gray-400" : "text-muted-foreground"}>Ready for booking</p>
-            </CardContent>
-          </Card>
+        <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="billing">Billing</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="profile">Profile</TabsTrigger>
+          </TabsList>
 
-          <Card className={isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Current Booking</CardTitle>
-              <Car className={isDarkMode ? "text-blue-400" : "text-blue-500"} />
-            </CardHeader>
-            <CardContent>
-              <div className={isDarkMode ? "text-blue-400" : "text-blue-600"}>{currentBooking ? currentBooking.number : "None"}</div>
-              <p className={isDarkMode ? "text-gray-400" : "text-muted-foreground"}>{currentBooking ? "Currently parked" : "No active booking"}</p>
-            </CardContent>
-          </Card>
+          <TabsContent value="overview" className="space-y-6">
+            {/* Quick Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card className={isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Available Slots</CardTitle>
+                  <MapPin className={isDarkMode ? "text-green-400" : "text-green-500"} />
+                </CardHeader>
+                <CardContent>
+                  <div className={isDarkMode ? "text-green-400" : "text-green-600"}>{availableSlots}</div>
+                  <p className={isDarkMode ? "text-gray-400" : "text-muted-foreground"}>Ready for booking</p>
+                </CardContent>
+              </Card>
 
-          <Card className={isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">My Vehicle</CardTitle>
-              <Car className={isDarkMode ? "text-purple-400" : "text-purple-500"} />
-            </CardHeader>
-            <CardContent>
-              <div className={isDarkMode ? "text-purple-400" : ""}>{currentUser.vehicleNumber || "N/A"}</div>
-              <p className={isDarkMode ? "text-gray-400" : "text-muted-foreground"} capitalize>{currentUser.vehicleType || "Not specified"}</p>
-            </CardContent>
-          </Card>
+              <Card className={isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Current Booking</CardTitle>
+                  <Car className={isDarkMode ? "text-blue-400" : "text-blue-500"} />
+                </CardHeader>
+                <CardContent>
+                  <div className={isDarkMode ? "text-blue-400" : "text-blue-600"}>{currentBooking ? currentBooking.number : "None"}</div>
+                  <p className={isDarkMode ? "text-gray-400" : "text-muted-foreground"}>{currentBooking ? "Currently parked" : "No active booking"}</p>
+                </CardContent>
+              </Card>
 
-          <Card className={isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
-              <History className={isDarkMode ? "text-purple-400" : "text-purple-500"} />
-            </CardHeader>
-            <CardContent>
-              <div className={isDarkMode ? "text-purple-400" : ""}>{billingHistory.length}</div>
-              <p className={isDarkMode ? "text-gray-400" : "text-muted-foreground"}>This month</p>
-            </CardContent>
-          </Card>
-        </div>
+              <Card className={isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">My Vehicle</CardTitle>
+                  <Car className={isDarkMode ? "text-purple-400" : "text-purple-500"} />
+                </CardHeader>
+                <CardContent>
+                  <div className={isDarkMode ? "text-purple-400" : ""}>{currentUser.vehicleNumber || "N/A"}</div>
+                  <p className={isDarkMode ? "text-gray-400" : "text-muted-foreground"} capitalize>{currentUser.vehicleType || "Not specified"}</p>
+                </CardContent>
+              </Card>
 
-        {/* Analytics Button */}
-        <div className="flex justify-end">
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button
-                variant="outline"
-                size="lg"
-                className={`border-none ${isDarkMode ? "bg-gradient-to-r from-blue-700 to-purple-700 hover:from-blue-800 hover:to-purple-800" : "bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"} text-white`}
-              >
-                <BarChart className="h-5 w-5 mr-2" />
-                View Monthly Parking Analytics
-              </Button>
-            </DialogTrigger>
-            <DialogContent className={`max-w-4xl max-h-[80vh] overflow-y-auto ${isDarkMode ? "bg-gray-900 border-gray-700" : "bg-gradient-to-r from-blue-50 to-purple-50 border-gray-200"}`}>
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  <BarChart className={isDarkMode ? "text-purple-400" : "text-purple-600"} />
-                  Monthly Parking Analytics
-                </DialogTitle>
-                <DialogDescription>Visualize your parking activity for 2025</DialogDescription>
-              </DialogHeader>
-              {billingHistory.length === 0 ? (
-                <p className={isDarkMode ? "text-gray-400" : "text-gray-600"}>No parking data available for analytics.</p>
-              ) : (
-                <div className="space-y-8 p-4">
-                  {/* Bar Chart: Bookings per Month */}
-                  <div>
-                    <h4 className={isDarkMode ? "text-blue-400" : "text-blue-700"}>Bookings per Month</h4>
-                    <div className="h-64">
-                      <Bar data={barChartData} options={chartOptions} />
-                    </div>
-                  </div>
+              <Card className={isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
+                  <History className={isDarkMode ? "text-purple-400" : "text-purple-500"} />
+                </CardHeader>
+                <CardContent>
+                  <div className={isDarkMode ? "text-purple-400" : ""}>{billingHistory.length}</div>
+                  <p className={isDarkMode ? "text-gray-400" : "text-muted-foreground"}>This month</p>
+                </CardContent>
+              </Card>
+            </div>
 
-                  {/* Line Chart: Duration per Month */}
-                  <div>
-                    <h4 className={isDarkMode ? "text-purple-400" : "text-purple-700"}>Total Duration per Month (Hours)</h4>
-                    <div className="h-64">
-                      <Line data={lineChartData} options={chartOptions} />
-                    </div>
-                  </div>
-
-                  {/* Pie Chart: Amount Spent per Month */}
-                  <div>
-                    <h4 className={isDarkMode ? "text-green-400" : "text-green-700"}>Total Amount Spent per Month ($)</h4>
-                    <div className="h-64">
-                      <Pie data={pieChartData} options={chartOptions} />
-                    </div>
-                  </div>
-                </div>
-              )}
-            </DialogContent>
-          </Dialog>
-        </div>
-
-        {/* Current Booking Status */}
-        {currentBooking && (
-          <Card className={isDarkMode ? "bg-gray-800 border-gray-700" : "border-blue-200 bg-blue-50"}>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Car className={isDarkMode ? "text-blue-400" : "text-blue-600"} />
-                Active Parking Session
-              </CardTitle>
-              <CardDescription>You are currently parked in slot {currentBooking.number}</CardDescription>
-              {error && (
-                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                  {error}
-                </div>
-              )}
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <p className={isDarkMode ? "text-gray-400" : "text-gray-700"}>Slot Number</p>
-                    <p className={isDarkMode ? "text-blue-400" : "text-blue-600"}>{currentBooking.number}</p>
-                  </div>
-                  <div>
-                    <p className={isDarkMode ? "text-gray-400" : "text-gray-700"}>Vehicle</p>
-                    <p className={isDarkMode ? "text-purple-400" : ""}>{currentUser.vehicleNumber}</p>
-                  </div>
-                  <div>
-                    <p className={isDarkMode ? "text-gray-400" : "text-gray-700"}>Duration</p>
-                    <p className={isDarkMode ? "text-orange-400" : "text-orange-600"}>{getTimeElapsed(currentBooking.bookedAt)}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
-                  <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                    <Clock className={isDarkMode ? "text-gray-400" : ""} />
-                    Started at {new Date(currentBooking.bookedAt).toLocaleTimeString("en-GB", { hour12: true, timeZone: "Asia/Kolkata" })}
-                  </div>
-                  <Button 
-                    onClick={() => handleCheckOut(currentBooking.id)} 
-                    disabled={checkoutLoading}
-                    className={isDarkMode ? "bg-red-700 hover:bg-red-800" : "bg-red-600 hover:bg-red-700"}
-                  >
-                    {checkoutLoading ? "Checking out..." : "Check Out"}
-                  </Button>
-                </div>
-
-                {/* Active Parking Bill Section */}
-                <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-                  <h4 className="font-medium mb-2 flex items-center gap-2">
-                    <DollarSign className={isDarkMode ? "text-green-400" : "text-green-600"} />
-                    Current Parking Bill
-                  </h4>
-                  {getCurrentBill() && (
-                    <div className="space-y-2">
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                          <p className={isDarkMode ? "text-gray-400" : "text-gray-700"}>Slot Number</p>
-                          <p className={isDarkMode ? "text-blue-400" : "text-blue-600"}>{getCurrentBill().slotNumber}</p>
-                        </div>
-                        <div>
-                          <p className={isDarkMode ? "text-gray-400" : "text-gray-700"}>Duration</p>
-                          <p className={isDarkMode ? "text-orange-400" : "text-orange-600"}>{getCurrentBill().duration}</p>
-                        </div>
-                        <div>
-                          <p className={isDarkMode ? "text-gray-400" : "text-gray-700"}>Estimated Amount</p>
-                          <p className={isDarkMode ? "text-green-400" : "text-green-600"}>${getCurrentBill().amount.toFixed(2)}</p>
-                        </div>
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className={`mt-2 border-none ${isDarkMode ? "bg-gradient-to-r from-blue-700 to-purple-700 hover:from-blue-800 hover:to-purple-800" : "bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"} text-white`}
-                        onClick={() => generateBillWord(getCurrentBill())}
-                      >
-                        Get Bill
-                      </Button>
+            {/* Current Booking Status */}
+            {currentBooking && (
+              <Card className={isDarkMode ? "bg-gray-800 border-gray-700" : "border-blue-200 bg-blue-50"}>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Car className={isDarkMode ? "text-blue-400" : "text-blue-600"} />
+                    Active Parking Session
+                  </CardTitle>
+                  <CardDescription>You are currently parked in slot {currentBooking.number}</CardDescription>
+                  {error && (
+                    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                      {error}
                     </div>
                   )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className={isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}>
-            <CardHeader>
-              <CardTitle>Quick Book</CardTitle>
-              <CardDescription>Find and book an available parking slot</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <p className={isDarkMode ? "text-gray-400" : "text-gray-600"}>{availableSlots} slots available for immediate booking</p>
-                <Button
-                  className={`w-full border-none ${isDarkMode ? "bg-gradient-to-r from-blue-700 to-purple-700 hover:from-blue-800 hover:to-purple-800" : "bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"}`}
-                  disabled={currentBooking || availableSlots === 0}
-                  onClick={handleBookSlot}
-                >
-                  {currentBooking
-                    ? "Already Parked"
-                    : availableSlots === 0
-                      ? "No Slots Available"
-                      : "Book a Slot"}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className={isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}>
-            <CardHeader>
-              <CardTitle>Booking History</CardTitle>
-              <CardDescription>View your recent parking sessions</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {billingHistory.length === 0 ? (
-                  <p className={isDarkMode ? "text-gray-400" : "text-gray-600"}>No booking history available.</p>
-                ) : (
-                  billingHistory
-                    .slice(0, showAllHistory ? billingHistory.length : 2)
-                    .map((bill) => (
-                      <div key={bill.id} className={isDarkMode ? "bg-gray-700" : "bg-gray-50"}>
-                        <div className="flex items-center justify-between p-2 rounded">
-                          <div>
-                            <p className="font-medium text-sm">{bill.slotNumber}</p>
-                            <p className={isDarkMode ? "text-gray-400" : "text-gray-500"}>
-                              {new Date(bill.date).toLocaleDateString("en-GB", { timeZone: "Asia/Kolkata" })}, {bill.startTime}
-                            </p>
-                          </div>
-                          <Badge variant="outline" className={isDarkMode ? "text-gray-400 border-gray-500" : "text-xs"}>
-                            {bill.duration}
-                          </Badge>
-                        </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <p className={isDarkMode ? "text-gray-400" : "text-gray-700"}>Slot Number</p>
+                        <p className={isDarkMode ? "text-blue-400" : "text-blue-600"}>{currentBooking.number}</p>
                       </div>
-                    ))
-                )}
-                {billingHistory.length > 2 && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className={`w-full ${isDarkMode ? "bg-transparent text-gray-400 hover:bg-gray-700" : "bg-transparent"}`}
-                    onClick={() => setShowAllHistory(!showAllHistory)}
-                  >
-                    {showAllHistory ? "Show Less" : "View All History"}
-                  </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+                      <div>
+                        <p className={isDarkMode ? "text-gray-400" : "text-gray-700"}>Vehicle</p>
+                        <p className={isDarkMode ? "text-purple-400" : ""}>{currentUser.vehicleNumber}</p>
+                      </div>
+                      <div>
+                        <p className={isDarkMode ? "text-gray-400" : "text-gray-700"}>Duration</p>
+                        <p className={isDarkMode ? "text-orange-400" : "text-orange-600"}>{getTimeElapsed(currentBooking.bookedAt)}</p>
+                      </div>
+                    </div>
 
-        {/* Payment & Billing */}
-        <Card className={isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CreditCard className={isDarkMode ? "text-gray-400" : ""} />
-              Payment & Billing
-            </CardTitle>
-            <CardDescription>Manage your payment methods and view billing history</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <h4 className={isDarkMode ? "text-gray-400" : "font-medium"}>Current Balance</h4>
-                <p className={isDarkMode ? "text-green-400" : "text-green-600"}>${balance.toFixed(2)}</p>
-                <p className={isDarkMode ? "text-gray-500" : "text-sm text-gray-500"}>Available credit</p>
-              </div>
-              <div>
-                <h4 className={isDarkMode ? "text-gray-400" : "font-medium"}>This Month</h4>
-                <p className={isDarkMode ? "text-purple-400" : ""}>${totalSpent.toFixed(2)}</p>
-                <p className={isDarkMode ? "text-gray-500" : "text-sm text-gray-500"}>Total spent</p>
-              </div>
-            </div>
-
-            {/* Add Funds Dialog */}
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className={`mt-4 border-none ${isDarkMode ? "bg-gradient-to-r from-blue-700 to-purple-700 hover:from-blue-800 hover:to-purple-800" : "bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"} text-white`}
-                >
-                  Add Funds
-                </Button>
-              </DialogTrigger>
-              <DialogContent className={isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}>
-                <DialogHeader>
-                  <DialogTitle>Add Funds</DialogTitle>
-                  <DialogDescription>Enter the amount to add to your balance</DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="addFunds">Amount ($)</Label>
-                    <Input
-                      id="addFunds"
-                      type="number"
-                      placeholder="Enter amount"
-                      value={addFundsAmount}
-                      onChange={(e) => setAddFundsAmount(e.target.value)}
-                      min="0"
-                      step="0.01"
-                      className={isDarkMode ? "bg-gray-700 border-gray-600 text-gray-100" : ""}
-                    />
-                  </div>
-                  <Button
-                    onClick={handleAddFunds}
-                    disabled={!addFundsAmount}
-                    className={isDarkMode ? "bg-gradient-to-r from-blue-700 to-purple-700 hover:from-blue-800 hover:to-purple-800" : "bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"}
-                  >
-                    Add Funds
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
-
-            {/* Payment Methods */}
-            <div className="mt-4">
-              <h4 className={isDarkMode ? "text-gray-400" : "font-medium"}>Payment Methods</h4>
-              {paymentMethods.map((method) => (
-                <div key={method.id} className={isDarkMode ? "bg-gray-700 border-gray-600" : "border rounded mb-2"}>
-                  <div className="flex items-center justify-between p-2">
-                    <span className={isDarkMode ? "text-gray-300" : ""}>
-                      {method.type} ({method.cardType}) ending in {method.last4} (Exp: {method.expiry})
-                    </span>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => setPaymentMethods(paymentMethods.filter((m) => m.id !== method.id))}
-                      className={isDarkMode ? "bg-red-800 hover:bg-red-900" : "bg-red-600 hover:bg-red-700"}
-                    >
-                      Remove
-                    </Button>
-                  </div>
-                </div>
-              ))}
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className={`mt-2 border-none ${isDarkMode ? "bg-gradient-to-r from-blue-700 to-purple-700 hover:from-blue-800 hover:to-purple-800" : "bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"} text-white`}
-                  >
-                    Add Payment Method
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className={isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}>
-                  <DialogHeader>
-                    <DialogTitle>Add Payment Method</DialogTitle>
-                    <DialogDescription>Enter your card details</DialogDescription>
-                  </DialogHeader>
-                  <form onSubmit={handleAddPaymentMethod} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="cardType">Card Type</Label>
-                      <Select
-                        value={newCard.cardType}
-                        onValueChange={(value) => setNewCard({ ...newCard, cardType: value })}
-                        className={isDarkMode ? "bg-gray-700 border-gray-600 text-gray-100" : ""}
+                    <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+                      <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                        <Clock className={isDarkMode ? "text-gray-400" : ""} />
+                        Started at {new Date(currentBooking.bookedAt).toLocaleTimeString("en-GB", { hour12: true, timeZone: "Asia/Kolkata" })}
+                      </div>
+                      <Button 
+                        onClick={() => handleCheckOut(currentBooking.id)} 
+                        disabled={checkoutLoading}
+                        className={isDarkMode ? "bg-red-700 hover:bg-red-800" : "bg-red-600 hover:bg-red-700"}
                       >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select card type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Credit">Credit</SelectItem>
-                          <SelectItem value="Debit">Debit</SelectItem>
-                          <SelectItem value="Prepaid">Prepaid</SelectItem>
-                        </SelectContent>
-                      </Select>
+                        {checkoutLoading ? "Checking out..." : "Check Out"}
+                      </Button>
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="cardNumber">Card Number</Label>
-                      <Input
-                        id="cardNumber"
-                        type="text"
-                        placeholder="1234 5678 9012 3456"
-                        value={newCard.cardNumber}
-                        onChange={(e) => setNewCard({ ...newCard, cardNumber: e.target.value.replace(/\D/g, "") })}
-                        maxLength={19}
-                        className={isDarkMode ? "bg-gray-700 border-gray-600 text-gray-100" : ""}
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="expiry">Expiry Date (MM/YY)</Label>
-                        <Input
-                          id="expiry"
-                          type="text"
-                          placeholder="MM/YY"
-                          value={newCard.expiry}
-                          onChange={(e) => setNewCard({ ...newCard, expiry: e.target.value })}
-                          maxLength={5}
-                          className={isDarkMode ? "bg-gray-700 border-gray-600 text-gray-100" : ""}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="cvv">CVV</Label>
-                        <Input
-                          id="cvv"
-                          type="text"
-                          placeholder="123"
-                          value={newCard.cvv}
-                          onChange={(e) => setNewCard({ ...newCard, cvv: e.target.value.replace(/\D/g, "") })}
-                          maxLength={4}
-                          className={isDarkMode ? "bg-gray-700 border-gray-600 text-gray-100" : ""}
-                        />
-                      </div>
-                    </div>
-                    {error && <p className={isDarkMode ? "text-red-400" : "text-red-600"}>{error}</p>}
-                    <Button
-                      type="submit"
-                      className={isDarkMode ? "bg-gradient-to-r from-blue-700 to-purple-700 hover:from-blue-800 hover:to-purple-800" : "bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"}
-                    >
-                      Add Card
-                    </Button>
-                  </form>
-                </DialogContent>
-              </Dialog>
-            </div>
 
-            {/* Billing History */}
-            <div className="mt-4">
-              <h4 className={isDarkMode ? "text-gray-400" : "font-medium"}>Billing History</h4>
-              {billingHistory.length === 0 ? (
-                <p className={isDarkMode ? "text-gray-400" : "text-gray-600"}>No booking history available.</p>
-              ) : (
-                billingHistory
-                  .slice(0, showAllHistory ? billingHistory.length : 2)
-                  .map((bill) => (
-                    <div key={bill.id} className={isDarkMode ? "bg-gray-700 border-gray-600" : "border rounded mb-2"}>
-                      <div className="flex items-center justify-between p-2">
-                        <div>
-                          <p className="font-medium text-sm">{bill.description}</p>
-                          <p className={isDarkMode ? "text-gray-400" : "text-gray-500"}>
-                            {new Date(bill.date).toLocaleDateString("en-GB", { timeZone: "Asia/Kolkata" })} | Vehicle: {bill.vehicleNumber} | Start: {bill.startTime}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <p className={isDarkMode ? "text-green-400" : "text-sm font-bold"}>${bill.amount.toFixed(2)}</p>
+                    {/* Active Parking Bill Section */}
+                    <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                      <h4 className="font-medium mb-2 flex items-center gap-2">
+                        <DollarSign className={isDarkMode ? "text-green-400" : "text-green-600"} />
+                        Current Parking Bill
+                      </h4>
+                      {getCurrentBill() && (
+                        <div className="space-y-2">
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                              <p className={isDarkMode ? "text-gray-400" : "text-gray-700"}>Slot Number</p>
+                              <p className={isDarkMode ? "text-blue-400" : "text-blue-600"}>{getCurrentBill().slotNumber}</p>
+                            </div>
+                            <div>
+                              <p className={isDarkMode ? "text-gray-400" : "text-gray-700"}>Duration</p>
+                              <p className={isDarkMode ? "text-orange-400" : "text-orange-600"}>{getCurrentBill().duration}</p>
+                            </div>
+                            <div>
+                              <p className={isDarkMode ? "text-gray-400" : "text-gray-700"}>Estimated Amount</p>
+                              <p className={isDarkMode ? "text-green-400" : "text-green-600"}>${getCurrentBill().amount.toFixed(2)}</p>
+                            </div>
+                          </div>
                           <Button
                             variant="outline"
                             size="sm"
-                            className={`border-none ${isDarkMode ? "bg-gradient-to-r from-blue-700 to-purple-700 hover:from-blue-800 hover:to-purple-800" : "bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"} text-white`}
-                            onClick={() => generateBillWord(bill)}
+                            className={`mt-2 border-none ${isDarkMode ? "bg-gradient-to-r from-blue-700 to-purple-700 hover:from-blue-800 hover:to-purple-800" : "bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"} text-white`}
+                            onClick={() => generateBillWord(getCurrentBill())}
                           >
                             Get Bill
                           </Button>
                         </div>
-                      </div>
+                      )}
                     </div>
-                  ))
-              )}
-              {billingHistory.length > 2 && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className={`w-full ${isDarkMode ? "bg-transparent text-gray-400 hover:bg-gray-700" : "bg-transparent"}`}
-                  onClick={() => setShowAllHistory(!showAllHistory)}
-                >
-                  {showAllHistory ? "Show Less" : "View All History"}
-                </Button>
-              )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Quick Actions */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card className={isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}>
+                <CardHeader>
+                  <CardTitle>Quick Book</CardTitle>
+                  <CardDescription>Find and book an available parking slot</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <p className={isDarkMode ? "text-gray-400" : "text-gray-600"}>{availableSlots} slots available for immediate booking</p>
+                    <Button
+                      className={`w-full border-none ${isDarkMode ? "bg-gradient-to-r from-blue-700 to-purple-700 hover:from-blue-800 hover:to-purple-800" : "bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"}`}
+                      disabled={currentBooking || availableSlots === 0}
+                      onClick={handleBookSlot}
+                    >
+                      {currentBooking
+                        ? "Already Parked"
+                        : availableSlots === 0
+                          ? "No Slots Available"
+                          : "Book a Slot"}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className={isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}>
+                <CardHeader>
+                  <CardTitle>Booking History</CardTitle>
+                  <CardDescription>View your recent parking sessions</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {billingHistory.length === 0 ? (
+                      <p className={isDarkMode ? "text-gray-400" : "text-gray-600"}>No booking history available.</p>
+                    ) : (
+                      billingHistory
+                        .slice(0, showAllHistory ? billingHistory.length : 2)
+                        .map((bill) => (
+                          <div key={bill.id} className={isDarkMode ? "bg-gray-700" : "bg-gray-50"}>
+                            <div className="flex items-center justify-between p-2 rounded">
+                              <div>
+                                <p className="font-medium text-sm">{bill.slotNumber}</p>
+                                <p className={isDarkMode ? "text-gray-400" : "text-gray-500"}>
+                                  {new Date(bill.date).toLocaleDateString("en-GB", { timeZone: "Asia/Kolkata" })}, {bill.startTime}
+                                </p>
+                              </div>
+                              <Badge variant="outline" className={isDarkMode ? "text-gray-400 border-gray-500" : "text-xs"}>
+                                {bill.duration}
+                              </Badge>
+                            </div>
+                          </div>
+                        ))
+                    )}
+                    {billingHistory.length > 2 && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className={`w-full ${isDarkMode ? "bg-transparent text-gray-400 hover:bg-gray-700" : "bg-transparent"}`}
+                        onClick={() => setShowAllHistory(!showAllHistory)}
+                      >
+                        {showAllHistory ? "Show Less" : "View All History"}
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             </div>
-          </CardContent>
-        </Card>
+          </TabsContent>
 
-        {/* User Profile Management */}
-        <UserProfile
-          currentUser={currentUser}
-          onUserUpdate={(updatedUser) => {
-            console.log("User updated:", updatedUser)
-          }}
-        />
-      </div>
+          <TabsContent value="billing" className="space-y-6">
+            {/* Payment & Billing */}
+            <Card className={isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CreditCard className={isDarkMode ? "text-gray-400" : ""} />
+                  Payment & Billing
+                </CardTitle>
+                <CardDescription>Manage your payment methods and view billing history</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className={isDarkMode ? "text-gray-400" : "font-medium"}>Current Balance</h4>
+                    <p className={isDarkMode ? "text-green-400" : "text-green-600"}>${balance.toFixed(2)}</p>
+                    <p className={isDarkMode ? "text-gray-500" : "text-sm text-gray-500"}>Available credit</p>
+                  </div>
+                  <div>
+                    <h4 className={isDarkMode ? "text-gray-400" : "font-medium"}>This Month</h4>
+                    <p className={isDarkMode ? "text-purple-400" : ""}>${totalSpent.toFixed(2)}</p>
+                    <p className={isDarkMode ? "text-gray-500" : "text-sm text-gray-500"}>Total spent</p>
+                  </div>
+                </div>
 
-      {/* Booking Form Dialog */}
-      <Dialog open={showBookingForm} onOpenChange={setShowBookingForm}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Book a Parking Slot</DialogTitle>
-            <DialogDescription>
-              Select your preferred slot and complete your booking
-            </DialogDescription>
-          </DialogHeader>
-          <BookingForm 
-            onSuccess={() => setShowBookingForm(false)} 
-            currentUser={currentUser}
-          />
-        </DialogContent>
-      </Dialog>
-    </div>
-  )
-}
+                {/* Add Funds Dialog */}
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={`mt-4 border-none ${isDarkMode ? "bg-gradient-to-r from-blue-700 to-purple-700 hover:from-blue-800 hover:to-purple-800" : "bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"} text-white`}
+                    >
+                      Add Funds
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className={isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}>
+                    <DialogHeader>
+                      <DialogTitle>Add Funds</DialogTitle>
+                      <DialogDescription>Enter the amount to add to your balance</DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="addFunds">Amount ($)</Label>
+                        <Input
+                          id="addFunds"
+                          type="number"
+                          placeholder="Enter amount"
+                          value={addFundsAmount}
+                          onChange={(e) => setAddFundsAmount(e.target.value)}
+                          min="0"
+                          step="0.01
