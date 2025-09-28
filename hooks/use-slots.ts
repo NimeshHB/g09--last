@@ -1,36 +1,63 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react';
 
 export interface Slot {
-  _id?: string
-  date: string
-  time: string
-  duration: number
-  service: string
+  _id?: string;
+  date: string;
+  time: string;
+  duration: number;
+  service: string;
 }
 
-export function useSlots() {
-  const [slots, setSlots] = useState<Slot[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+interface SlotsResponse {
+  slots: Slot[];
+}
 
-  const fetchSlots = async () => {
-    setLoading(true)
+interface UseSlotsReturn {
+  slots: Slot[];
+  loading: boolean;
+  error: string | null;
+  refetch: () => Promise<void>;
+}
+
+export function useSlots(): UseSlotsReturn {
+  const [slots, setSlots] = useState<Slot[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchSlots = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
     try {
-      const res = await fetch('/api/slots')
-      if (!res.ok) throw new Error('Failed to fetch slots')
-      const data = await res.json()
-      setSlots(data.slots)
-      setError(null)
+      const response = await fetch('/api/slots', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data: SlotsResponse = await response.json();
+      
+      if (!Array.isArray(data.slots)) {
+        throw new Error('Invalid response format: slots is not an array');
+      }
+
+      setSlots(data.slots);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error')
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch slots';
+      setError(errorMessage);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  }, []);
 
   useEffect(() => {
-    fetchSlots()
-  }, [])
+    fetchSlots();
+  }, [fetchSlots]);
 
-  return { slots, loading, error, refetch: fetchSlots }
+  return { slots, loading, error, refetch: fetchSlots };
 }
